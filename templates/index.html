@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flight Search</title>
+    <style>
+        body { font-family: sans-serif; max-width: 500px; margin: 60px auto; }
+        input, button { display: block; width: 100%; margin: 8px 0; padding: 8px; font-size: 1rem; box-sizing: border-box; }
+        button { background: #2563eb; color: white; border: none; cursor: pointer; border-radius: 4px; }
+        label { font-weight: bold; margin-top: 12px; display: block; }
+    </style>
+</head>
+<body>
+
+<h2>Flight Search</h2>
+
+<form action="/flights" method="post">
+    <label> Source Airport Code: </label>
+    <input type="text" name="origin_code" placeholder="e.g. JFK" maxlength="5" required>
+
+    <label>Destination Airport Code:</label>
+    <input type="text" name="dest_code" placeholder="e.g. LAX" maxlength="5" required>
+
+    <label>Start Date:</label>
+    <input type="date" name="start_date" required>
+
+    <label>End Date:</label>
+    <input type="date" name="end_date" required>
+
+    <button type="submit">Search Flights</button>
+
+</form>
+</body>
+</html>
