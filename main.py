@@ -10,6 +10,23 @@ import os
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
+load_dotenv()
+
+SEARCH_FLIGHTS_QUERY = '''
+select fs.flight_number, fs.airline_name, fs.origin_code, fs.dest_code, f.departure_date, fs.departure_time 
+from flightservice fs join flight f on fs.flight_number = f.flight_number
+where fs.origin_code = %s and fs.dest_code = %s and f.departure_date BETWEEN %s AND %s 
+order by f.departure_date, fs.departure_time
+'''
+
+SEAT_AVAILABILITY_QUERY = '''
+select f.flight_number, f.departure_date, ac.capacity, count(b.pid) as booked_seats, ac.capacity - count(b.pid) as available_seats 
+from flight f 
+join aircraft ac on f.plane_type = ac.plane_type 
+left join booking b on f.flight_number = b.flight_number and f.departure_date = b.departure_date 
+where f.flight_number = %s and f.departure_date = %s 
+group by f.flight_number, f.departure_date, ac.capacity
+'''
 
 def get_db_connection():
     conn = psycopg2.connect(
@@ -29,7 +46,7 @@ def index(request: Request):
 def all_flights(request: Request, origin_code: str = Form(...), dest_code: str = Form(...), start_date: str = Form(...), end_date: str = Form(...)):
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-    cur.execute("select fs.flight_number, fs.airline_name, fs.origin_code, fs.dest_code, f.departure_date, fs.departure_time from flightservice fs join flight f on fs.flight_number = f.flight_number where fs.origin_code = %s and fs.dest_code = %s and f.departure_date BETWEEN %s AND %s order by f.departure_date, fs.departure_time", (origin_code, dest_code, start_date, end_date))
+    cur.execute(SEARCH_FLIGHTS_QUERY, (origin_code, dest_code, start_date, end_date))
     flights = cur.fetchall()
     cur.close()
     conn.close()
@@ -44,7 +61,7 @@ def flight_booking(request: Request, flight_number: str, departure_date: str):
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
     parsed_date = date.fromisoformat(departure_date)
-    cur.execute("select f.flight_number, f.departure_date, ac.capacity, count(b.pid) as booked_seats, ac.capacity - count(b.pid) as available_seats from flight f join aircraft ac on f.plane_type = ac.plane_type left join booking b on f.flight_number = b.flight_number and f.departure_date = b.departure_date where f.flight_number = %s and f.departure_date = %s group by f.flight_number, f.departure_date, ac.capacity", (flight_number, parsed_date))
+    cur.execute(SEAT_AVAILABILITY_QUERY, (flight_number, parsed_date))
     seats = cur.fetchone()
     cur.close()
     conn.close()
