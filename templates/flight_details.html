@@ -28,6 +28,22 @@
             <span class="value">{{ flight_details.departure_date }}</span>
         </div>
         <div class="row">
+            <span class="label">Origin</span>
+            <span class="value">{{ flight_details.origin_code }}</span>
+        </div>
+        <div class="row">
+            <span class="label">Destination</span>
+            <span class="value">{{ flight_details.dest_code }}</span>
+        </div>
+        <div class="row">
+            <span class="label">Departure Time (GMT)</span>
+            <span class="value">{{ flight_details.departure_time }}</span>
+        </div>
+        <div class="row">
+            <span class="label">Duration</span>
+            <span class="value">{{ flight_details.duration }}</span>
+        </div>
+        <div class="row">
             <span class="label">Plane Capacity</span>
             <span class="value">{{ flight_details.capacity }}</span>
         </div>
@@ -44,13 +60,17 @@
         </div>
         <div class="row">
             <span class="label">Booked Seats</span>
-            <span class="value">
+            <div style="display: flex; flex-wrap: wrap; gap: 6px; max-width: 300px;">
                 {% if booked_seats %}
-                    {{ booked_seats | join(", ") }}
+                    {% for seat in booked_seats %}
+                        <span style="background: #fee2e2; color: #dc2626; padding: 2px 8px; border-radius: 4px; font-size: 0.85rem;">
+                            {{ seat }}
+                        </span>
+                    {% endfor %}
                 {% else %}
-                    None
+                    <span>None</span>
                 {% endif %}
-            </span>
+            </div>
         </div>
     </div>
     {% else %}
