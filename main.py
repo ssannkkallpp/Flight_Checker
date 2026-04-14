@@ -4,6 +4,8 @@ from fastapi.templating import Jinja2Templates
 import psycopg2
 import psycopg2.extras
 from datetime import datetime, date
+from dotenv import load_dotenv
+import os
 
 
 app = FastAPI()
@@ -11,10 +13,10 @@ templates = Jinja2Templates(directory="templates")
 
 def get_db_connection():
     conn = psycopg2.connect(
-    host="localhost",
-    port=5432,
-    database="hackathon_db",
-    user="sankalpramesh",
+    host=os.getenv("DB_HOST"),
+    port=os.getenv("DB_PORT"),
+    database=os.getenv("DB_NAME"),
+    user=os.getenv("DB_USER"),
     )
     return conn
 
