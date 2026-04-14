@@ -17,29 +17,39 @@
     <a href="javascript:history.back()">← Back to results</a>
     <h2>Flight Detail</h2>
 
-    {% if detail %}
+    {% if flight_details %}
     <div class="card">
         <div class="row">
             <span class="label">Flight Number</span>
-            <span class="value">{{ detail.flight_number }}</span>
+            <span class="value">{{ flight_details.flight_number }}</span>
         </div>
         <div class="row">
             <span class="label">Departure Date</span>
-            <span class="value">{{ detail.departure_date }}</span>
+            <span class="value">{{ flight_details.departure_date }}</span>
         </div>
         <div class="row">
             <span class="label">Plane Capacity</span>
-            <span class="value">{{ detail.capacity }}</span>
+            <span class="value">{{ flight_details.capacity }}</span>
         </div>
         <div class="row">
             <span class="label">Seats Booked</span>
-            <span class="value">{{ detail.booked_seats }}</span>
+            <span class="value">{{ flight_details.booked_seats }}</span>
         </div>
         <div class="row">
             <span class="label">Seats Available</span>
-            <span class="value {% if detail.available_seats == 0 %}full{% else %}available{% endif %}">
-                {{ detail.available_seats }}
-                {% if detail.available_seats == 0 %} (FULL){% endif %}
+            <span class="value {% if flight_details.available_seats == 0 %}full{% else %}available{% endif %}">
+                {{ flight_details.available_seats }}
+                {% if flight_details.available_seats == 0 %} (FULL){% endif %}
+            </span>
+        </div>
+        <div class="row">
+            <span class="label">Booked Seats</span>
+            <span class="value">
+                {% if booked_seats %}
+                    {{ booked_seats | join(", ") }}
+                {% else %}
+                    None
+                {% endif %}
             </span>
         </div>
     </div>

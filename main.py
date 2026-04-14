@@ -28,6 +28,15 @@ where f.flight_number = %s and f.departure_date = %s
 group by f.flight_number, f.departure_date, ac.capacity
 '''
 
+BOOKED_SEATS_QUERY = '''
+
+select b.seat_number
+from booking b
+where b.flight_number = %s and b.departure_date = %s
+order by b.seat_number
+
+'''
+
 def get_db_connection():
     conn = psycopg2.connect(
     host=os.getenv("DB_HOST"),
@@ -63,6 +72,10 @@ def flight_booking(request: Request, flight_number: str, departure_date: str):
     parsed_date = date.fromisoformat(departure_date)
     cur.execute(SEAT_AVAILABILITY_QUERY, (flight_number, parsed_date))
     seats = cur.fetchone()
+
+    cur.execute(BOOKED_SEATS_QUERY, (flight_number, parsed_date))
+    booked_seats = [seat['seat_number'] for seat in cur.fetchall()]
+
     cur.close()
     conn.close()
-    return templates.TemplateResponse(request=request, name="flight_details.html", context={"detail": seats})
+    return templates.TemplateResponse(request=request, name="flight_details.html", context={"flight_details": seats, "booked_seats": booked_seats})
