@@ -26,6 +26,7 @@
         <thead>
             <tr>
                 <th>Flight #</th>
+                <th>Airline</th> 
                 <th>Date</th>
                 <th>Origin</th>
                 <th>Destination</th>
@@ -37,6 +38,7 @@
             {% for f in flights %}
             <tr>
                 <td>{{ f.flight_number }}</td>
+                <td>{{ f.airline_name }}</td>
                 <td>{{ f.departure_date }}</td>
                 <td>{{ f.origin_code }}</td>
                 <td>{{ f.dest_code }}</td>
@@ -50,6 +52,15 @@
             {% endfor %}
         </tbody>
     </table>
+    <div style="display: flex; align-items: center; gap: 16px; margin-top: 20px;">
+        {% if page > 1 %}
+            <a href="/flights?origin_code={{ origin }}&dest_code={{ dest }}&start_date={{ start_date }}&end_date={{ end_date }}&page={{ page - 1 }}">← Previous</a>
+        {% endif %}
+        <span style="color: #555;">Page {{ page }}</span>
+        {% if has_next %}
+            <a href="/flights?origin_code={{ origin }}&dest_code={{ dest }}&start_date={{ start_date }}&end_date={{ end_date }}&page={{ page + 1 }}">Next →</a>
+        {% endif %}
+    </div>
     {% else %}
         <p>No flights found for this route and date range.</p>
     {% endif %}

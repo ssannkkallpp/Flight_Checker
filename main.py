@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, Form
+from fastapi import FastAPI, Request, Form, Query
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 import psycopg2
@@ -17,15 +17,17 @@ select fs.flight_number, fs.airline_name, fs.origin_code, fs.dest_code, f.depart
 from flightservice fs join flight f on fs.flight_number = f.flight_number
 where fs.origin_code = %s and fs.dest_code = %s and f.departure_date BETWEEN %s AND %s 
 order by f.departure_date, fs.departure_time
+limit %s offset %s
 '''
 
 SEAT_AVAILABILITY_QUERY = '''
-select f.flight_number, f.departure_date, ac.capacity, count(b.pid) as booked_seats, ac.capacity - count(b.pid) as available_seats 
+select f.flight_number, f.departure_date, fs.origin_code, fs.dest_code, fs.departure_time, fs.duration, ac.capacity, count(b.pid) as booked_seats, ac.capacity - count(b.pid) as available_seats 
 from flight f 
-join aircraft ac on f.plane_type = ac.plane_type 
+join aircraft ac on f.plane_type = ac.plane_type
+join flightservice fs on f.flight_number = fs.flight_number
 left join booking b on f.flight_number = b.flight_number and f.departure_date = b.departure_date 
 where f.flight_number = %s and f.departure_date = %s 
-group by f.flight_number, f.departure_date, ac.capacity
+group by f.flight_number, f.departure_date, ac.capacity, fs.origin_code, fs.dest_code, fs.departure_time, fs.duration
 '''
 
 BOOKED_SEATS_QUERY = '''
@@ -51,18 +53,28 @@ def index(request: Request):
     return templates.TemplateResponse(request=request, name="index.html")
 
 
-@app.post("/flights", response_class=HTMLResponse)
-def all_flights(request: Request, origin_code: str = Form(...), dest_code: str = Form(...), start_date: str = Form(...), end_date: str = Form(...)):
+@app.get("/flights", response_class=HTMLResponse)
+def all_flights(request: Request, origin_code: str = Query(...), dest_code: str = Query(...), start_date: str = Query(...), end_date: str = Query(...), page: int = Query(1)):
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-    cur.execute(SEARCH_FLIGHTS_QUERY, (origin_code, dest_code, start_date, end_date))
+    origin_code = origin_code.strip().upper()
+    dest_code = dest_code.strip().upper()
+    limit = 3
+    page = max(page, 1)
+    offset = (page - 1) * limit
+    cur.execute(SEARCH_FLIGHTS_QUERY, (origin_code, dest_code, start_date, end_date, limit+1, offset))
     flights = cur.fetchall()
     cur.close()
     conn.close()
+
+    has_next = len(flights) > limit
+    flights = flights[:limit]  # Keep only the number of flights for the current page
     return templates.TemplateResponse(request=request, name="flights.html", context={"flights": flights, "origin": origin_code,
     "dest": dest_code,
     "start_date": start_date,
-    "end_date": end_date})
+    "end_date": end_date,
+    "page": page,
+    "has_next": has_next})
 
 
 @app.get("/seats/{flight_number}/{departure_date}", response_class=HTMLResponse)
